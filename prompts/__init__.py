@@ -10,8 +10,6 @@ from mcp.server.fastmcp import FastMCP
 from .agent_prompts import register_agent_prompts
 from .client_prompts import register_client_prompts
 from .market_prompts import register_market_prompts
-
-# Import all prompt registration functions
 from .property_prompts import register_property_prompts
 
 
@@ -34,13 +32,6 @@ def register_all_prompts(mcp: FastMCP):
     register_client_prompts(mcp)
     register_market_prompts(mcp)
     register_agent_prompts(mcp)
-
-    print("✅ Registered all prompt templates:")
-    print("   📊 Property Analysis & Comparison Prompts")
-    print("   🎯 Client Matching & Consultation Prompts")
-    print("   📈 Market Analysis & Investment Prompts")
-    print("   👤 Agent Performance & Development Prompts")
-
 
 # Export the main registration function
 __all__ = ["register_all_prompts"]

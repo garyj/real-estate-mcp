@@ -122,28 +122,72 @@ real-estate-mcp/
 
 ## 📦 Installation
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/agentic-ops/real-estate-mcp.git
-   cd real-estate-mcp
-   ```
+### Quick Start (Recommended)
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/agentic-ops/real-estate-mcp.git
+cd real-estate-mcp
 
-3. **Run the server**:
-   ```bash
-   python main.py
-   ```
+# Create and activate virtual environment
+python -m venv .venv
+
+# On Windows:
+.venv\Scripts\activate
+
+# On macOS/Linux:
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install in Claude Desktop
+mcp install main.py
+```
+
+### Manual Claude Desktop Configuration
+
+If you prefer manual setup, edit your Claude Desktop config file:
+
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "real-estate": {
+      "command": "C:/absolute/path/to/real-estate-mcp/.venv/Scripts/python.exe",
+      "args": ["C:/absolute/path/to/real-estate-mcp/main.py"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+```
+
+**Important**: 
+- Use **absolute paths** for both the Python executable and main.py
+- On Windows, use forward slashes (/) or double backslashes (\\\\) in the JSON
+- Point to your **virtual environment's Python** (`.venv/Scripts/python.exe` on Windows, `.venv/bin/python` on macOS/Linux)
+- Restart Claude Desktop completely after configuration
+
+### Running Locally (For Testing)
+
+```bash
+# STDIO mode (default, for Claude Desktop)
+python main.py
+
+# SSE mode (for remote/web access)
+python main.py sse
+```
 
 ## 🔍 MCP Inspector
 
-To inspect and debug your MCP server, you can use the MCP Inspector tool:
+To inspect and debug your MCP server during development:
 
 ```bash
-npx @modelcontextprotocol/inspector
+npx @modelcontextprotocol/inspector python main.py
 ```
 
 This will launch the MCP Inspector interface, allowing you to:
@@ -152,14 +196,88 @@ This will launch the MCP Inspector interface, allowing you to:
 - Inspect server responses
 - Test server functionality
 
-## 🌐 Server Transport
+## 💻 Claude Desktop Integration
 
-The server uses **Server-Sent Events (SSE)** transport, making it compatible with:
-- Web browsers and HTTP clients
-- Traditional MCP clients
-- Custom integrations
+### Quick Setup
 
-### Connection Details
+Once your server is installed in Claude Desktop (see Installation above), you can immediately start using it:
+
+1. **Restart Claude Desktop** after configuring the server
+2. **Look for the MCP indicator** (🔨 hammer icon) in the bottom-right corner
+3. **Click the indicator** to see available tools and resources
+4. **Start chatting** - Claude can now access all your real estate data!
+
+### Example Prompts for Claude
+
+Try these prompts to explore the real estate data:
+
+- *"What properties are available in Downtown Riverside?"*
+- *"Show me properties between $500k and $1M"*
+- *"Give me agent Sarah Chen's performance dashboard"*
+- *"What's the current market overview?"*
+- *"Match properties for client CLI001"*
+- *"Tell me about schools in the Woodcrest area"*
+- *"Compare market conditions across all areas"*
+
+### Configuration Details
+
+**Windows**: Edit `%APPDATA%\Claude\claude_desktop_config.json`
+**macOS**: Edit `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "real-estate": {
+      "command": "python",
+      "args": ["C:/absolute/path/to/real-estate-mcp/main.py"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+```
+
+**Important Notes:**
+- Use **absolute paths** to your `main.py` file
+- Adjust the Python command if you're using a virtual environment
+- The server runs in STDIO mode by default (no port or URL needed)
+
+## 🌐 Server Transport Modes
+
+This server supports two transport modes for different use cases:
+
+### STDIO Transport (Default - Recommended for Claude Desktop)
+
+**Best for**: Claude Desktop, MCP Inspector, local development
+
+**Advantages**:
+- ✅ Ultra-low latency (~1ms)
+- ✅ Simple configuration (no ports/URLs)
+- ✅ Automatic process management
+- ✅ Standard MCP ecosystem compatibility
+
+**Usage**:
+```bash
+python main.py
+```
+
+### SSE Transport (For Remote/Web Access)
+
+**Best for**: Remote access, web integration, team sharing, cloud deployment
+
+**Advantages**:
+- ✅ Multiple simultaneous clients
+- ✅ Remote access over network
+- ✅ Web browser compatible
+- ✅ Real-time streaming updates
+
+**Usage**:
+```bash
+python main.py sse
+```
+
+### SSE Connection Details (When Running in SSE Mode)
 - **SSE Endpoint**: `http://127.0.0.1:8000/sse` (for establishing SSE connection)
 - **Message Endpoint**: `http://127.0.0.1:8000/messages/` (for posting MCP messages)
 - **Transport**: SSE (Server-Sent Events)
@@ -278,9 +396,39 @@ The server operates on comprehensive real estate data:
 
 ## 🔍 Usage Examples
 
-### MCP Client Examples
+### Using with Claude Desktop (STDIO Mode - Recommended)
 
-For proper MCP client integration, use the MCP protocol with the correct endpoints:
+After installing in Claude Desktop, simply chat with Claude:
+
+**User**: *"What properties are available in Downtown Riverside?"*
+
+**Claude**: *Uses the `search_properties` tool and reads the `realestate://properties/area/Downtown Riverside` resource to show you all matching properties.*
+
+**User**: *"Show me Sarah Chen's performance dashboard"*
+
+**Claude**: *Reads the `realestate://agent/AG001/dashboard` resource to display comprehensive agent metrics.*
+
+**User**: *"Find properties under $800k with 3+ bedrooms"*
+
+**Claude**: *Uses the `filter_properties` tool with your criteria and presents matching listings.*
+
+### Using with MCP Inspector (For Testing)
+
+```bash
+# Test with MCP Inspector
+npx @modelcontextprotocol/inspector python main.py
+```
+
+Then explore tools and resources through the inspector UI.
+
+### Using with SSE Transport (For Remote/Web Access)
+
+For proper MCP client integration over HTTP, use the MCP protocol with the correct endpoints:
+
+```bash
+# Start server in SSE mode
+python main.py sse
+```
 
 ```bash
 # Establish SSE connection (listen for server messages)
@@ -306,6 +454,24 @@ curl -X POST http://127.0.0.1:8000/messages/ \
 curl -X POST http://127.0.0.1:8000/messages/ \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "match_client_preferences", "arguments": {"client_id": "CLI001"}}}'
+```
+
+### Using SSE Mode with Claude Desktop
+
+If you want to run the server in SSE mode and connect from Claude Desktop (for remote scenarios):
+
+1. Start server: `python main.py sse`
+2. Configure Claude Desktop with `mcp-remote`:
+
+```json
+{
+  "mcpServers": {
+    "real-estate-remote": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://127.0.0.1:8000/sse"]
+    }
+  }
+}
 ```
 
 ## 🧪 Testing
@@ -473,13 +639,62 @@ When adding new functionality:
 3. Import and register in `prompts/__init__.py`
 4. **Add Tests**: Create corresponding test fixtures and test methods
 
-## 🔄 Benefits of SSE Transport
+## 🎯 Transport Selection Guide
 
-- **Web Compatible**: Direct browser integration
-- **Real-time**: Server-sent events for live updates
-- **HTTP Standard**: Works with standard HTTP tools
-- **Firewall Friendly**: Uses standard HTTP port
-- **Scalable**: Supports multiple concurrent connections
+Choose the right transport mode for your use case:
+
+| Feature | STDIO (Default) | SSE (Remote) |
+|---------|----------------|--------------|
+| **Best For** | Claude Desktop, local tools | Web apps, remote access, team sharing |
+| **Latency** | ~1ms (ultra-fast) | 10-100ms (network-dependent) |
+| **Multiple Clients** | ❌ Single client | ✅ Multiple simultaneous clients |
+| **Remote Access** | ❌ Local only | ✅ Network access |
+| **Setup Complexity** | ✅ Simple (no config) | ⚠️ Requires port/URL management |
+| **Claude Desktop** | ✅ Native support | ⚠️ Requires mcp-remote proxy |
+| **Auto-cleanup** | ✅ Automatic | ⚠️ Manual management |
+| **Security** | ✅ Process isolation | ⚠️ Needs authentication |
+
+### Quick Decision Matrix
+
+**Use STDIO when:**
+- Installing in Claude Desktop (recommended)
+- Running on the same machine as the client
+- You want the fastest response times
+- You need simple setup with no configuration
+
+**Use SSE when:**
+- Deploying to a remote server or cloud
+- Multiple team members need access
+- Building web applications
+- You need real-time streaming updates
+
+## 🚀 Publishing to Repository
+
+### Recommended Approach
+
+The server is **designed to work best with STDIO transport** for the MCP ecosystem, making it:
+
+1. ✅ **Easy to install**: `mcp install main.py`
+2. ✅ **Compatible with Claude Desktop**: Standard integration
+3. ✅ **Discoverable**: Can be listed in MCP server directories
+4. ✅ **Simple to use**: No port configuration needed
+5. ✅ **Flexible**: SSE mode available for advanced use cases
+
+### For End Users
+
+**Primary use case** (98% of users):
+```bash
+git clone https://github.com/agentic-ops/real-estate-mcp.git
+cd real-estate-mcp
+pip install -r requirements.txt
+mcp install main.py --name "Real Estate"
+```
+
+**Advanced use case** (remote deployment):
+```bash
+python main.py sse  # Run on server
+# Configure clients to connect to http://your-server:8000/sse
+```
 
 ## 📝 License
 

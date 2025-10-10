@@ -5,7 +5,9 @@ Comprehensive utilities for managing and querying real estate data
 
 import json
 import os
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 
@@ -29,8 +31,13 @@ class PropertyFilter:
 class RealEstateDataManager:
     """Centralized manager for all real estate data"""
 
-    def __init__(self, data_dir: str = "data"):
-        self.data_dir = data_dir
+    def __init__(self, data_dir: str = None):
+        # Use absolute path relative to this file's location
+        if data_dir is None:
+            # Get the directory where utils.py is located
+            base_dir = Path(__file__).parent.resolve()
+            data_dir = base_dir / "data"
+        self.data_dir = str(data_dir)
         self._cache = {}
         self._load_all_data()
 
@@ -44,7 +51,9 @@ class RealEstateDataManager:
                 data = json.load(f)
                 self._cache[filepath] = data
                 return data
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            # Log the error for debugging
+            print(f"Warning: Failed to load {filepath}: {e}", file=sys.stderr)
             return {}
 
     def _load_all_data(self):

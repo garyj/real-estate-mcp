@@ -7,6 +7,7 @@ market analysis, client relationships, and area intelligence.
 """
 
 import asyncio
+import sys
 
 from mcp.server.fastmcp import FastMCP
 
@@ -55,24 +56,40 @@ def register_all_components():
 
 
 async def main():
-    """Main server function"""
+    """Main server function with transport selection"""
+    import logging
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[logging.StreamHandler(sys.stderr)]
+    )
+    logger = logging.getLogger(__name__)
+    
     # Register all components
     register_all_components()
 
-    # Print startup information
-    print("🏠 Real Estate MCP Server Starting...")
-    print(f"📊 Loaded {len(data_manager.get_all_properties())} properties")
-    print(f"👥 Loaded {len(data_manager.get_all_agents())} agents")
-    print(f"🏢 Loaded {len(data_manager.get_all_clients())} clients")
-    print(f"📈 Loaded {len(data_manager.get_recent_sales())} recent sales")
-    print(f"🌍 Loaded {len(data_manager.get_all_areas())} areas")
-    print("✅ Server ready for connections!")
+    # Log startup information to stderr
+    logger.info("Real Estate MCP Server Starting...")
+    logger.info(f"Loaded {len(data_manager.get_all_properties())} properties")
+    logger.info(f"Loaded {len(data_manager.get_all_agents())} agents")
+    logger.info(f"Loaded {len(data_manager.get_all_clients())} clients")
+    logger.info(f"Loaded {len(data_manager.get_recent_sales())} recent sales")
+    logger.info(f"Loaded {len(data_manager.get_all_areas())} areas")
 
-    # Run the server with SSE transport using FastMCP's built-in functionality
-    print("🌐 SSE Server running on http://127.0.0.1:8000/sse")
-    print("📡 Ready for MCP client connections")
+    # Determine transport mode from command line arguments
+    transport = "stdio"  # Default to stdio for Claude Desktop compatibility
+    if len(sys.argv) > 1:
+        transport = sys.argv[1].lower()
 
-    await mcp.run_sse_async()
+    if transport == "sse":
+        # Run with SSE transport for remote/web access
+        logger.info("Running with SSE transport on http://127.0.0.1:8000/sse")
+        await mcp.run_sse_async()
+    else:
+        # Run with STDIO transport for Claude Desktop
+        logger.info("Running with STDIO transport")
+        await mcp.run_stdio_async()
 
 
 if __name__ == "__main__":
